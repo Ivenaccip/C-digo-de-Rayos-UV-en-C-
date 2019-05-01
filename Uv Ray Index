@@ -1,0 +1,110 @@
+#include <LiquidCrystal.h>
+LiquidCrystal lcd(7, 6, 5, 4, 3, 2);
+int UVOUT = A5; //Output from the sensor
+int REF_3V3 = A0; //3.3V power on the Arduino board
+int z;
+void setup()
+{
+Serial.begin(9600);
+lcd.begin(16,2);
+
+pinMode(UVOUT, INPUT);
+pinMode(REF_3V3, INPUT);
+}
+
+void loop()
+{
+int uvLevel = averageAnalogRead(UVOUT);
+int refLevel = averageAnalogRead(REF_3V3);
+
+//Use the 3.3V power pin as a reference to get a very accurate output value from sensor
+float outputVoltage = 3.3 / refLevel * uvLevel;
+
+float u = mapfloat(outputVoltage, 0.99, 2.9, 0.0, 15.0);
+
+Serial.print("MP8511 output: ");
+Serial.print(uvLevel);
+
+Serial.print(" MP8511 voltage: ");
+Serial.print(outputVoltage);
+
+lcd.setCursor(0, 0);
+lcd.print("UV Ray Index");
+
+
+lcd.setCursor(1, 1);
+if (u>0 && u<0.39){
+  lcd.print("nivel 1");
+}
+else if (u>0.397 && u<0.794){
+  lcd.print("nivel 2");
+}
+else if (u>0.795 && u<1.191){
+  lcd.print("nivel 3");
+}
+else if (u>1.192 && u<1.588){
+  lcd.print("nivel 4");
+}
+else if (u>1.589 && u<1.985){
+  lcd.print("nivel 5");
+}
+else if (u>1.986 && u<2.382){
+  lcd.print("nivel 6");
+}
+else if (u>2.383 && u<2.78){
+  lcd.print("nivel 7");
+}
+else if (u>2.781 && u<3.177){
+  lcd.print("nivel 8");
+}
+else if (u>3.178 && u<3.574){
+  lcd.print("nivel 9");
+}
+else if (u>3.575 && u<3.971){
+  lcd.print("nivel 10");
+}
+else if (u>3.972 && u<4.368){
+  lcd.print("nivel 11");
+}
+else if (u>4.369 && u<4.765){
+  lcd.print("nivel 12");
+}
+else if (u>4.766 && u<5.162){
+  lcd.print("nivel 13");
+}
+else if (u>5.163 && u<5.56){
+  lcd.print("nivel 14");
+}
+else{
+  lcd.print("nivel 14+");
+}
+
+Serial.print(" UV Intensity (mW/cm^2): ");
+Serial.print(u);
+lcd.setCursor(7, 1);
+
+
+Serial.println();
+
+delay(300);
+lcd.clear();
+}
+
+//Takes an average of readings on a given pin
+//Returns the average
+int averageAnalogRead(int pinToRead)
+{
+byte numberOfReadings = 8;
+unsigned int runningValue = 0;
+
+for(int x = 0 ; x < numberOfReadings ; x++)
+runningValue += analogRead(pinToRead);
+runningValue /= numberOfReadings;
+
+return(runningValue);
+}
+
+float mapfloat(float x, float in_min, float in_max, float out_min, float out_max)
+{
+return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
